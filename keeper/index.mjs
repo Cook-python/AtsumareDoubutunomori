@@ -15,6 +15,7 @@ if (!PROJECT || !USER || !(PASS || process.env.SCRATCH_SESSION)) {
   process.exit(1);
 }
 
+const good = (v) => /^\d{31,256}$/.test(v ?? '');
 const cookie = (res, key) => res.headers.getSetCookie().join(';').match(new RegExp(`${key}=([^;]+)`))?.[1];
 
 async function login() {
@@ -46,6 +47,7 @@ console.log('ログインできた');
 
 let saved = {};
 try { saved = JSON.parse(fs.readFileSync(FILE, 'utf8')); } catch { saved = {}; }
+for (const k of NAMES.slice(0, 8)) if (!good(saved[k])) delete saved[k];
 const live = {};
 let done = false;
 
@@ -54,7 +56,6 @@ const ws = new WebSocket(process.env.CLOUD_URL || 'wss://clouddata.scratch.mit.e
 });
 
 const send = (obj) => ws.send(JSON.stringify(obj) + '\n');
-const good = (v) => typeof v === 'string' ? v.length > 30 : false;
 
 ws.on('open', () => {
   send({ method: 'handshake', user: USER, project_id: PROJECT });
