@@ -28,6 +28,9 @@ jobs:
         env:
           PROJECT_ID: ${{ vars.PROJECT_ID }}
           CONTACT: ${{ vars.CONTACT }}
+          SCRATCH_USER: ${{ secrets.SCRATCH_USER }}
+          SCRATCH_PASS: ${{ secrets.SCRATCH_PASS }}
+          SCRATCH_SESSION: ${{ secrets.SCRATCH_SESSION }}
           STAY_MINUTES: "28"
       - name: バックアップを保存
         run: |
