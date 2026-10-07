@@ -92,6 +92,11 @@ button{cursor:pointer}
 .tw.quote{border-color:var(--flame)}
 .tag{display:inline-block;font-size:10px;font-weight:900;color:var(--flame);border:1px solid var(--flame);border-radius:4px;padding:0 5px;margin-right:4px}
 .list{display:grid;gap:8px}
+.poll{grid-column:2;display:grid;gap:6px;margin-top:8px}
+.poll div{position:relative;display:flex;justify-content:space-between;padding:6px 10px;border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:13px}
+.poll div::before{content:"";position:absolute;inset:0 auto 0 0;width:var(--w);background:var(--card2)}
+.poll .win::before{background:rgba(255,77,46,.35)}
+.poll span,.poll b{position:relative}
 .list>*{animation:slide .35s ease}
 @keyframes slide{from{transform:translateY(-8px);opacity:0}}
 .sec{font-size:12px;color:var(--mute);display:flex;justify-content:space-between;padding-inline:4px}
@@ -271,14 +276,18 @@ const TOPICS = [
   ["pet", "ハムスター うさぎ インコ 金魚 猫 ねこ ネコ 犬 いぬ イヌ ペット 子猫 子犬"],
   ["selfie", "自撮り 髪型 メイク コーデ 服 ネイル 前髪 すっぴん 顔"],
   ["outing", "旅行 海 山 カフェ 遊園地 公園 キャンプ 温泉 水族館 動物園 ドライブ 散歩 お出かけ 帰省"],
-  ["hobby", "イラスト プログラミング Scratch ゲーム ギター ピアノ 読書 ランニング 筋トレ 作品 絵 プラモ 手芸 推し ライブ"],
+  ["hobby", "イラスト プログラミング Scratch ゲーム ギター ピアノ 読書 ランニング 筋トレ 作品 絵 プラモ 手芸"],
   ["study", "勉強 テスト 受験 宿題 部活 合格 模試 課題"],
   ["work", "仕事 残業 会議 出張 在宅 リモート 職場 デスク"],
   ["buy", "買った 購入 ゲット 届いた 新品 ポチった"],
+  ["sports", "サッカー 野球 バスケ テニス 試合 大会 優勝 練習 マラソン ジム 水泳 バレー 卓球"],
+  ["family", "子ども 息子 娘 赤ちゃん 家族 夫 妻 旦那 嫁 運動会 誕生日 孫"],
+  ["car", "愛車 バイク 自転車 洗車 納車 車"],
+  ["oshi", "推し活 推し グッズ アクスタ 遠征 痛バ 握手会 ライブ"],
   ["nature", "空 夕日 朝日 花 桜 紅葉 雲 星 月 虹 雪"]
 ].flatMap(([cat, s]) => s.split(" ").map(w => [w, cat]))
 
-const CAT_NAME = { food: "料理", pet: "ペット", selfie: "自撮り", outing: "お出かけ", hobby: "趣味", study: "勉強", work: "仕事", buy: "買い物", nature: "風景", any: "写真" }
+const CAT_NAME = { food: "料理", pet: "ペット", selfie: "自撮り", outing: "お出かけ", hobby: "趣味", study: "勉強", work: "仕事", buy: "買い物", nature: "風景", sports: "スポーツ", family: "家族", car: "愛車", oshi: "推し活", any: "写真" }
 
 const POSITIVE = {
   food: ["おいしそう〜！", "作れるのすごい", "レシピ知りたいです", "お腹すいてきた", "盛り付けかわいい"],
@@ -290,6 +299,10 @@ const POSITIVE = {
   work: ["おつかれさまです！", "がんばってますね", "無理しないでね"],
   buy: ["いいなー！", "それ気になってた", "おめでとうございます"],
   nature: ["きれい…", "空気が伝わってくる", "壁紙にしたい"],
+  sports: ["ナイスプレー！", "かっこいい", "努力の結果ですね"],
+  family: ["ほっこりしました", "素敵なご家族", "大きくなりましたね"],
+  car: ["かっこいい！", "ピカピカ", "いい色ですね"],
+  oshi: ["わかる〜！", "愛が伝わってくる", "同担です！"],
   any: ["いいですね！", "素敵", "わかる〜", "こういうのでいいんだよ", "朝から元気出た", "保存しました"]
 }
 
@@ -359,6 +372,34 @@ const NITPICK = {
     "その場所、私有地では？",
     "{t}なんて毎日あるのに何が珍しいの"
   ],
+  sports: [
+    "そのフォーム、ケガするよ",
+    "{t}やってる人って声デカそう",
+    "負けた時の言い訳を先に用意してる",
+    "ユニフォームが汚い。洗濯して",
+    "プロでもないのに{t}アピール"
+  ],
+  family: [
+    "子どもの顔を出すのは危険",
+    "家族をネタにするな",
+    "勝手に載せられた{t}がかわいそう",
+    "幸せアピールが鼻につく",
+    "背景の部屋が散らかってる"
+  ],
+  car: [
+    "{t}自慢、うざい",
+    "そのナンバー、隠しきれてない",
+    "路上駐車ですよね？",
+    "ローン何年？",
+    "洗車してそれ？"
+  ],
+  oshi: [
+    "{t}に貢ぎすぎ。将来考えてる？",
+    "同担拒否です",
+    "そのグッズ、転売で買ったでしょ",
+    "推しの迷惑になるからやめて",
+    "オタクの集まりこわ"
+  ],
   any: [
     "これ、実は計算し尽くされた『やらせ』なんじゃ？",
     "この人、前も炎上してなかった？",
@@ -378,7 +419,15 @@ const NITPICK = {
     "ちょっと何言ってるかわからない",
     "{t}って言葉の使い方、間違ってます",
     "画像の右下、拡大してみて。気づいた人いる？",
-    "スクショしました"
+    "スクショしました",
+    "親の顔が見てみたい",
+    "本人のためを思って言ってます",
+    "みんな言ってるよ",
+    "ブロックされる前にスクショ",
+    "この投稿で何人傷ついたと思ってる？",
+    "黙ってればいいのに",
+    "普通こういうの載せないよね",
+    "見てるこっちが恥ずかしい"
   ]
 }
 
@@ -421,7 +470,12 @@ const IMG_ALWAYS = [
   "撮った人の影が写り込んでる",
   "よく見ると後ろに何かいる…",
   "構図がど真ん中すぎてセンスがない",
-  "ピントが合ってない。手が震えてる？"
+  "ピントが合ってない。手が震えてる？",
+  "左上の黒いの、指？",
+  "奥の洗濯物が気になって内容が入ってこない",
+  "写ってる袋、どこの店？",
+  "テーブルが傾いてる",
+  "画面の端に誰かの足が写ってる"
 ]
 
 const PROFILE_RULES = [
@@ -437,7 +491,10 @@ const CONSPIRACY = [
   "この人の正体、たぶん業者",
   "写真の反射に別の人が写ってる。一人じゃないよね？",
   "これステマでしょ。どこからお金もらってるの",
-  "AIで作った画像だと思う"
+  "AIで作った画像だと思う",
+  "この人、毎回同じ時間に投稿してる。botでは？",
+  "背景の本棚に怪しい本がある",
+  "投稿の頭文字を縦に読むと…"
 ]
 
 const USERS = [
@@ -461,6 +518,10 @@ const NICK_HEAD = {
   work: ["サボり", "社外秘"],
   buy: ["見せびらかし", "成金"],
   nature: ["ポエム", "意識高い系"],
+  sports: ["フォーム崩壊", "声デカ"],
+  family: ["幸せアピール", "親バカ"],
+  car: ["ローン", "洗車"],
+  oshi: ["課金", "同担拒否"],
   any: ["匂わせ", "やらせ", "丁寧な暮らし", "承認欲求", "炎上"]
 }
 
@@ -519,10 +580,49 @@ const FRIEND = [["ゆうき", "#3aa0b0"], ["まなみ", "#d36f8f"], ["けんた"
 const FRIEND_OPEN = ["見た？ やばいことになってるよ", "とりあえずアカウント消した方がいいかも", "俺は味方だからな（笑）", "『{nick}』ってあだ名、もう定着してるよ", "再生数{views}回いってる…"]
 const FRIEND_LINK = ["ショート動画でまとめられてたぞ", "これお前だよな？", "TLに流れてきたんだけど…"]
 
-const TELOP_HEAD = { food: "手作り{t}が", pet: "ペット写真が", selfie: "自撮り投稿が", outing: "{t}の写真が", hobby: "{t}の投稿が", study: "勉強アピールが", work: "仕事中の投稿が", buy: "購入報告が", nature: "{t}の写真が", any: "何気ない投稿が" }
+const TELOP_HEAD = { food: "手作り{t}が", pet: "ペット写真が", selfie: "自撮り投稿が", outing: "{t}の写真が", hobby: "{t}の投稿が", study: "勉強アピールが", work: "仕事中の投稿が", buy: "購入報告が", nature: "{t}の写真が", sports: "{t}の投稿が", family: "家族写真が", car: "愛車自慢が", oshi: "推し活投稿が", any: "何気ない投稿が" }
 const TELOP_BOOM = ["大炎上", "物議", "大荒れ", "総叩き"]
 const TELOP_WHY = ["{trait}の{t}に", "たった一枚の写真に", "何気ない一言に", "{age}歳{job}の投稿に"]
 const TELOP_END = ["センス警察が動く", "ネット民激怒", "専門家も苦言", "賛否両論", "マナー警察が出動", "特定班が始動"]
+
+const ROUTES = [
+  { name: "やらせ疑惑", trends: ["#やらせ疑惑", "{t} 自作自演"], posts: [["user", "投稿時間が計算されすぎてる。炎上商法でしょ"], ["poll", "この{t}、アリ？ ナシ？"], ["user", "アンケートの結果がすべて"]] },
+  { name: "特定班", trends: ["#特定班", "{t} 撮影場所"], posts: [["user", "影の向きから、撮影は午後3時ごろと判明"], ["user", "窓の外の電柱、見覚えある"], ["user", "特定班まだ？"]] },
+  { name: "自称専門家", trends: ["{t} 専門家", "#{t}の正しいやり方"], posts: [["pro", "{t}研究20年の者ですが、この写真は基本がなっていません"], ["news", "「{t}」の投稿に専門家が苦言 ネットで議論に"], ["user", "専門家が言うなら間違いない"]] },
+  { name: "企業の便乗", trends: ["#公式が便乗", "{t} 公式"], posts: [["brand", "私たちの商品なら、こんなことにはなりません（笑）"], ["brand", "{nick}さん、うちで作り直しませんか？ 今ならクーポン配布中🔥"], ["user", "公式まで乗っかってて草"]] },
+  { name: "擁護派も炎上", trends: ["#擁護派", "{t} 擁護"], posts: [["fan", "{t}くらいで、ここまで言わなくても…"], ["user", "↑擁護してる人も同類"], ["user", "擁護してるの、本人の別アカでしょ"]] },
+  { name: "なりすまし出現", trends: ["#なりすまし", "{name} 本物"], posts: [["fake", "本人です。前の投稿は全部やらせでした。すみません"], ["user", "え、本物どっち？"], ["user", "なりすましが出るほどの人気者"]] },
+  { name: "海外に拡散", trends: ["海外の反応", "#{t}gate"], posts: [["global", "Japanese {t} post is going viral for all the wrong reasons 🔥"], ["global2", "Why is everyone so angry about this? lol"], ["matome", "【海外の反応】日本の{t}投稿に世界が困惑"]] },
+  { name: "謝罪要求", trends: ["#{name}は謝罪しろ", "謝罪文 テンプレ"], posts: [["user", "謝罪文まだ？"], ["user", "なんで黙ってるの？ 逃げるの？"], ["user", "謝ったところで許すとは言ってない"]] },
+  { name: "過去の投稿掘り起こし", trends: ["{name} 過去の投稿", "#掘り起こし"], posts: [["old", "{name}さんの3年前の投稿「{old}」← これ見て"], ["user", "昔からこうなんだ"], ["user", "過去の投稿、全部スクショしといた"]] },
+  { name: "ネタ画像化", trends: ["#{nick}選手権", "{nick} コラ"], posts: [["user", "{nick}のコラ画像作った"], ["user", "{nick}選手権、開催します"], ["user", "LIMEスタンプ化はよ"]] }
+]
+const OLD_POSTS = ["眠い", "明日から本気出す", "今日も何もしてない", "ラーメン食べたい", "誰か遊ぼ", "テストやばい", "月曜日きらい", "人生つらたん"]
+const BRANDS = [["ヒエヒエ食品【公式】", "hiehie_official", "#1d6fb8"], ["ピカリ電機【公式】", "pikari_denki", "#e3a21a"], ["まるまる不動産【公式】", "marumaru_fudosan", "#3c8d5a"], ["にこにこ保険【公式】", "nikoniko_hoken", "#d4557f"]]
+const SPECIAL = { pro: ["{t}研究家 山本", "yamamoto_lab", "#2b6f8f"], global: ["Daily Viral", "daily_viral", "#2d4f9e"], global2: ["mike_tokyo", "mike_tokyo", "#7a6a2b"], news: ["Yトピ", "y_topics", "#c0392b"] }
+
+const STUDENT = /学生|中学|高校|生徒/
+const EXTRA = [
+  { id: "dad", name: "父", color: "#4b6584", lines: ["見た", "母さんから聞いた", "……{t}、うまかったのか？"] },
+  { id: "sis", name: "姉", color: "#c0607e", lines: ["ねえ、私まで職場でいじられてるんだけど", "『{nick}の姉』って呼ばれた", "落ち着いたらご飯おごってね"] },
+  { id: "bro", name: "弟", color: "#4a90a4", lines: ["学校で話題になってる", "クラスのやつに『{nick}の家族？』って聞かれた", "サインくれって言われたけど断っといた"] },
+  { id: "gma", name: "おばあちゃん", color: "#9b7bb0", lines: ["{name}ちゃん、テレビに出たの？", "近所の人がスマホを見せてくれたよ", "ごはんはちゃんと食べてるかい"] },
+  { id: "kin", name: "親戚グループ（8）", color: "#7f8c5a", group: true, lines: [["叔母", "これ{name}ちゃんよね？"], ["いとこ", "スクショ回ってきた"], ["叔父", "親戚一同、見なかったことにする"], ["叔母", "お正月の話題はこれで決まりね"]] },
+  { id: "reunion", name: "6年2組 同窓会（31）", color: "#b8863b", group: true, lines: [["幹事", "同窓会の出欠をとります"], ["元クラスメイト", "{nick}くる？"], ["幹事", "話題の人なので必ず来てください"]] },
+  { id: "classmate", name: "小学校の同級生", color: "#5e9c76", lines: ["久しぶり！ 覚えてる？", "Yの投稿見て思い出しちゃった", "昔から{t}好きだったよね"] },
+  { id: "ex", name: "元恋人", color: "#a0526d", lines: ["急にごめん", "Yの件見た", "……がんばって"] },
+  { id: "landlord", name: "管理会社", color: "#6d7a86", lines: ["いつもお世話になっております", "共用部で写真を撮る人がいる、との連絡がありました", "念のためお知らせいたします"] },
+  { id: "chief", name: "町内会長 山田", color: "#8a6d3b", lines: ["町内会長の山田です", "回覧板の件でご相談がありまして", "次の会合で一言いただけますか"] },
+  { id: "salon", name: "ヘアサロン・ミント", color: "#3fa7a0", lines: ["いつもありがとうございます！", "Yの件、お店でも話題でした", "次回はイメチェンにしますか？"] },
+  { id: "press", name: "Yトピ編集部 記者", color: "#34495e", lines: ["突然のご連絡失礼します", "今回の投稿について取材させていただけませんか", "ご回答がない場合は『回答なし』と掲載いたします"] },
+  { id: "law", name: "誹謗中傷 相談窓口", color: "#2c3e50", lines: ["突然のご連絡失礼いたします", "削除請求や開示請求のご相談を承っております", "初回相談は無料です"] },
+  { id: "ins", name: "にこにこ保険 営業", color: "#d4557f", lines: ["炎上保険のご案内です", "今なら{nick}割で月額980円！", "ご検討のほど、よろしくお願いいたします"] },
+  { id: "stranger", name: "知らない人", color: "#777777", lines: ["はじめまして", "{nick}さんですよね？", "ファンです。サインください"] },
+  { id: "official", name: "LIME運営", color: "#8bc34a", lines: ["LIMEチームです", "あなたのアカウントに多数の通報が届いています", "心当たりがない場合、このメッセージは無視してください"] },
+  { id: "fortune", name: "占い師 星の母", color: "#6a4c93", lines: ["あなたの運勢を占いました", "今年は炎上の相が出ています", "開運の壺を特別価格でお譲りします"] },
+  { id: "class", name: "クラスのグループ（35）", color: "#4a6fa5", group: true, when: c => STUDENT.test(c.job || ""), lines: [["けんと", "これ{name}じゃね？"], ["りな", "{nick}って呼ばれてるよ"], ["そうた", "やめたげなよ"], ["けんと", "スクショ保存した"]] },
+  { id: "doki", name: "同期のグループ（12）", color: "#3d5a80", group: true, when: c => !STUDENT.test(c.job || ""), lines: [["高橋", "これ{name}だよな？"], ["中村", "社内チャットでも回ってる"], ["小林", "今夜飲み行く？ 話聞くよ"], ["高橋", "{nick}に乾杯"]] }
+]
 
 const STAGES = [[0, "平和"], [6, "いい感じ"], [18, "ざわざわ"], [35, "プチ炎上"], [55, "炎上"], [75, "大炎上"], [92, "焼け野原"]]
 
@@ -682,6 +782,7 @@ function buildLocal(ctx) {
     nick: ctx.nick,
     positive: take([...(POSITIVE[cat] || []), ...POSITIVE.any], 5),
     replies: [...lead, ...shuffle(replies)],
+    others: shuffle(EXTRA.filter(c => !c.when || c.when(ctx))).slice(0, 5 + (Math.random() * 3 | 0)).map(c => ({ ...c, lines: c.lines.map(l => Array.isArray(l) ? [l[0], fill(l[1], ctx)] : fill(l, ctx)) })),
     trends: shuffle([`#${ctx.nick}`, `#${ctx.t}炎上`, `${ctx.job || "一般人"} 炎上`, `#${ctx.t}警察`, "やらせ疑惑", `${ctx.t}の人`, "#拡散希望", `${CAT_NAME[cat]}投稿`]).slice(0, 6),
     mom: [pick(MOM.open), ...take(MOM.mid, 2), pick(MOM.close)].map(s => fill(s, ctx)),
     work: work.map(([from, color, lines]) => ({ from, color, lines: lines.map(s => fill(s, ctx)) })),
@@ -708,7 +809,7 @@ ${canImg ? "写真に実際に写っている具体的な物・色・配置・�
 - あだ名は「孤独炒飯男」のような、写真の特徴と人物を組み合わせた4〜8字の造語。性別が男性なら末尾「男」、女性なら「女」、それ以外は「の人」
 
 次の形のJSONだけを返してください:
-{"nick":"あだ名","positive":["最初の好意的なコメント",4件],"replies":["粗探し・こじつけ・陰謀論・自称専門家などの批判",14件],"trends":["トレンドに並ぶ語句（#付きも可）",5件],"mom":["母からのLIMEメッセージ。回覧板や近所の噂など身内への影響",4件],"work":{"from":"職業に合った相手（上司・担任・取引先など、肩書きと名字）","lines":["その相手からの丁寧だが不穏なメッセージ",3件]},"friend":["友人からのメッセージ。最後はショート動画でまとめられていたという連絡",2件],"telop":["まとめ動画のテロップ",4行、各10字以内。2行目は「大炎上」などの短い語],"headline":"まとめ動画のタイトル"}`
+{"nick":"あだ名","positive":["最初の好意的なコメント",4件],"replies":["粗探し・こじつけ・陰謀論・自称専門家などの批判",14件],"trends":["トレンドに並ぶ語句（#付きも可）",5件],"mom":["母からのLIMEメッセージ。回覧板や近所の噂など身内への影響",4件],"work":{"from":"職業に合った相手（上司・担任・取引先など、肩書きと名字）","lines":["その相手からの丁寧だが不穏なメッセージ",3件]},"friend":["友人からのメッセージ。最後はショート動画でまとめられていたという連絡",2件],"others":[{"from":"写真や職業に合った、ほかの連絡相手（例: 写真の店の店員、近所の人、習い事の先生）","lines":["その人からのメッセージ",2〜3件]},3件],"telop":["まとめ動画のテロップ",4行、各10字以内。2行目は「大炎上」などの短い語],"headline":"まとめ動画のタイトル"}`
   return sample.json(prompt, canImg ? { images: file } : {})
 }
 
@@ -726,6 +827,9 @@ function merge(local, ai) {
   if (wl.length) out.work = [{ from: str(ai.work.from, local.work[0].from), color: local.work[0].color, lines: wl }]
   if (fr.length) out.friend = { ...local.friend, lines: fr }
   if (tel.length === 4) out.telop = tel
+  const colors = ["#7d6b9e", "#5b8c85", "#b07a4f"]
+  const others = Array.isArray(ai.others) ? ai.others.slice(0, 3).map((o, i) => ({ id: "ai" + i, name: str(o?.from, ""), color: colors[i], lines: arr(o?.lines, 3) })).filter(o => o.name && o.lines.length) : []
+  if (others.length) out.others = [...others, ...local.others.slice(0, 4)]
   out.headline = str(ai.headline, local.headline)
   return out
 }
@@ -787,6 +891,22 @@ function reply(u, text, opt = {}) {
   if (opt.note !== false) notify(u[0], text, "y", "home")
 }
 
+function pollCard(q) {
+  const no = 85 + (Math.random() * 13 | 0)
+  const t = card({ name: "Yアンケート", uid: "y_poll", color: "#2f6fe0", text: q, counts: { reply: run.flame * 9 | 0, rt: run.flame * 30 | 0, like: run.flame * 80 | 0, view: run.flame * 3000 | 0 }, tag: "アンケート" })
+  const box = el("div", "poll")
+  for (const [k, v] of [["アリ", 100 - no], ["ナシ", no]]) {
+    const row = el("div", v > 50 ? "win" : "")
+    row.style.setProperty("--w", v + "%")
+    row.append(el("span", "", k), el("b", "", v + "%"))
+    box.append(row)
+  }
+  t.insertBefore(box, t.lastChild)
+  $("replies").prepend(t)
+  badge("home")
+  notify("Yアンケート", `${q} 投票数${fmt(run.flame * 2400)}`, "y", "home")
+}
+
 function addTrend(word, label) {
   $("trendEmpty").hidden = true
   const ol = $("trends")
@@ -803,7 +923,8 @@ function renderRooms() {
   box.textContent = ""
   for (const r of [...rooms.values()].sort((a, b) => b.at - a.at)) {
     const b = el("button", "room")
-    b.append(avatar(r.name, r.color), el("b", "", r.name), el("em", "", r.unread || ""), el("p", "", r.msgs.at(-1)?.text || ""))
+    const last = r.msgs.at(-1)
+    b.append(avatar(r.name, r.color), el("b", "", r.name), el("em", "", r.unread || ""), el("p", "", last ? (last.who ? last.who + "：" : "") + last.text : ""))
     b.onclick = () => openTalk(r.id)
     box.append(b)
   }
@@ -834,7 +955,8 @@ function closeTalk() {
 
 function bubble(r, m) {
   const d = el("div", "msg")
-  d.append(avatar(r.name, r.color), el("small", "", r.name + "・たった今"))
+  const nm = m.who || r.name
+  d.append(avatar(nm, m.who ? tint(nm) : r.color), el("small", "", nm + "・たった今"))
   if (m.link) {
     const a = el("a")
     a.append(el("b", "", m.text), el("span", "", "ショート動画・" + m.link))
@@ -844,17 +966,23 @@ function bubble(r, m) {
   return d
 }
 
-function lime(id, name, color, text, link) {
-  if (!rooms.has(id)) rooms.set(id, { id, name, color, msgs: [], unread: 0, at: 0 })
+function tint(name) {
+  return `hsl(${[...name].reduce((a, ch) => a + ch.charCodeAt(0) * 7, 0) % 360} 40% 45%)`
+}
+
+function lime(c, line, link) {
+  const { id, name } = c
+  if (!rooms.has(id)) rooms.set(id, { id, name, color: c.color, msgs: [], unread: 0, at: 0 })
   const r = rooms.get(id)
-  const m = { text, link }
+  const [who, text] = Array.isArray(line) ? line : [null, line]
+  const m = { who, text, link }
   r.msgs.push(m)
   r.at = performance.now()
   if (openRoom === id && !$("s-lime").hidden) $("talk").append(bubble(r, m))
   else r.unread++
   renderRooms()
   badge("lime")
-  notify(name, link ? "動画のリンクを送信しました" : text, "lime", "lime")
+  notify(name, link ? "動画のリンクを送信しました" : (who ? who + "：" : "") + text, "lime", "lime")
 }
 
 function buildReel(sc, ctx) {
@@ -897,7 +1025,7 @@ function report(sc, ctx) {
   const nick = el("div", "nick", sc.nick)
   nick.prepend(el("small", "", "あなたについたあだ名"))
   const stats = el("div", "stats")
-  ;[[c.reply, "リプライ"], [c.rt, "引用・リポスト"], [c.view, "表示回数"], [rooms.size, "LIMEで連絡してきた人"]].forEach(([v, k]) => {
+  ;[[c.reply, "リプライ"], [c.rt, "引用・リポスト"], [c.view, "表示回数"], [rooms.size, "LIMEのトーク"]].forEach(([v, k]) => {
     const d = el("div")
     d.append(el("b", "", fmt(v)), el("span", "", k))
     stats.append(d)
@@ -908,7 +1036,7 @@ function report(sc, ctx) {
   const prof = el("button", "ghost", "プロフィールを変える")
   prof.onclick = () => { reset(); show("prof") }
   btns.append(again, prof)
-  box.append(el("h2", "", "炎上レポート"), nick, stats, el("p", "lesson", `あなたが投稿したのは${ctx.photo ? "写真1枚" : "ひとこと"}です。批判の理由は、リプ欄の人たちがあとから付けました。`), el("p", "fine", `トレンドに${$("trends").children.length}件入り、${[...rooms.values()].map(r => r.name).join("、")}からLIMEが届きました。`), btns)
+  box.append(el("h2", "", "炎上レポート"), nick, stats, el("p", "lesson", `あなたが投稿したのは${ctx.photo ? "写真1枚" : "ひとこと"}です。批判の理由は、リプ欄の人たちがあとから付けました。`), el("p", "fine", `通った炎上ルート：${sc.routes.join(" → ")}`), el("p", "fine", `トレンドに${$("trends").children.length}件入り、LIMEには${rooms.size}件のトークから連絡が届きました。`), btns)
 }
 
 function reset() {
@@ -995,33 +1123,55 @@ async function start() {
     reply(next(), rs[ri]); setFlame(40 + (ri - 5) * 3); bump(1.5)
   }
   sc.trends.slice(3).forEach(w => addTrend(w, "急上昇"))
+  const routes = shuffle(ROUTES).slice(0, 3)
+  sc.routes = routes.map(r => r.name)
+  ctx.old = pick(OLD_POSTS)
+  for (const [k, route] of routes.entries()) {
+    for (const [i, [kind, raw]] of route.posts.entries()) {
+      await sleep(900); if (!alive()) return
+      const text = fill(raw, ctx)
+      if (kind === "user") reply(next(), text), ri++
+      else if (kind === "fan") reply(pick(FANS), text, { cls: "good" })
+      else if (kind === "brand") reply(pick(BRANDS), text, { tag: "公式" })
+      else if (kind === "fake") reply([ctx.name, ctx.uid + "_real", "#3d8bd4"], text, { tag: "なりすまし" })
+      else if (kind === "old") reply(next(), text, { tag: "掘り起こし" }), ri++
+      else if (kind === "matome") reply(pick(MATOME), text, { cls: "quote", tag: "引用" })
+      else if (kind === "poll") pollCard(text)
+      else if (kind === "news") reply(SPECIAL.news, text, { cls: "quote", tag: "ニュース" })
+      else { const u = SPECIAL[kind]; reply([fill(u[0], ctx), u[1], u[2]], text) }
+      setFlame(46 + k * 5 + i); bump(1.8)
+    }
+    route.trends.forEach(w => addTrend(fill(w, ctx), "急上昇"))
+    if (ri < rs.length) { await sleep(700); if (!alive()) return; reply(next(), rs[ri++]) }
+  }
   await sleep(1200); if (!alive()) return
 
   show("lime")
-  const w = sc.work
-  const MOMC = "#b5577a"
-  const steps = [
-    ...sc.mom.slice(0, 2).map(t => ["mom", "母", MOMC, t]),
-    ...w[0].lines.slice(0, 1).map(t => ["w0", w[0].from, w[0].color, t]),
-    ...sc.mom.slice(2, 3).map(t => ["mom", "母", MOMC, t]),
-    ...w[0].lines.slice(1).map(t => ["w0", w[0].from, w[0].color, t]),
-    ...(w[1] ? w[1].lines.map(t => ["w1", w[1].from, w[1].color, t]) : []),
-    ...sc.mom.slice(3).map(t => ["mom", "母", MOMC, t])
+  const contacts = [
+    ...sc.work.map((w, i) => ({ id: "w" + i, name: w.from, color: w.color, lines: w.lines })),
+    ...sc.others
   ]
+  const mom = { id: "mom", name: "母", color: "#b5577a" }
+  const queue = sc.mom.slice(0, 2).map(l => [mom, l])
+  const pools = [{ c: mom, rest: sc.mom.slice(2) }, ...contacts.map(c => ({ c, rest: [...c.lines] }))]
+  for (let live = pools; (live = live.filter(x => x.rest.length)).length;) {
+    const x = pick(live)
+    queue.push(...x.rest.splice(0, 1 + (Math.random() * 2 | 0)).map(l => [x.c, l]))
+  }
   let prev = null
-  for (const [i, [id, name, color, t]] of steps.entries()) {
-    await sleep(1500); if (!alive()) return
-    lime(id, name, color, t)
-    if (id !== prev) openTalk(id)
-    prev = id
-    setFlame(62 + i * 2); bump(2)
-    if (ri < rs.length && i % 2) reply(next(), rs[ri++], { note: false })
+  for (const [i, [c, line]] of queue.entries()) {
+    await sleep(1100); if (!alive()) return
+    lime(c, line)
+    if (c.id !== prev) openTalk(c.id)
+    prev = c.id
+    setFlame(62 + i / queue.length * 22); bump(2)
+    if (ri < rs.length && i % 3 === 2) reply(next(), rs[ri++], { note: false })
   }
   const fr = sc.friend
+  const friend = { id: "friend", name: fr.from, color: fr.color }
   for (const [i, t] of fr.lines.entries()) {
-    await sleep(1600); if (!alive()) return
-    const last = i === fr.lines.length - 1
-    lime("friend", fr.from, fr.color, t, last ? `${ctx.views}回再生` : null)
+    await sleep(1400); if (!alive()) return
+    lime(friend, t, i === fr.lines.length - 1 ? `${ctx.views}回再生` : null)
     if (i === 0) openTalk("friend")
     setFlame(86 + i * 3); bump(3)
   }
