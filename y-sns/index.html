@@ -1,0 +1,538 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
+<title>Y 炎上シミュレーター</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap">
+<style>
+:root{
+  --ground:#0a1322;
+  --card:#14243d;
+  --card2:#1a2e4d;
+  --line:#253a5c;
+  --ink:#e9eef6;
+  --mute:#8b9bb4;
+  --blue:#2f6fe0;
+  --flame:#ff4d2e;
+  --heat:#ffb21f;
+  --chat:#eef1f5;
+  --bubble:#ffffff;
+  --chat-ink:#23272e;
+  --chat-mute:#8a909a;
+  --telop:#fff24a;
+  --display:"Dela Gothic One","Hiragino Sans","Yu Gothic",sans-serif;
+  --body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
+  color-scheme:dark;
+}
+html,body{height:auto}
+body{background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.6;padding-inline:16px;padding-block:0 48px}
+*{box-sizing:border-box}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--heat);outline-offset:2px}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--ground);display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding-block:14px;border-bottom:1px solid var(--line);max-width:1120px;margin-inline:auto}
+.logo{display:flex;align-items:center;gap:12px}
+.logo b{font-family:var(--display);font-weight:400;font-size:44px;line-height:1;color:var(--card);-webkit-text-stroke:2px var(--ink);paint-order:stroke}
+.logo span{display:grid;line-height:1.25}
+.logo strong{font-size:17px;font-weight:900}
+.logo small{color:var(--mute);font-size:12px}
+.meter{flex:1;min-width:220px;display:grid;gap:4px}
+.meter-head{display:flex;justify-content:space-between;font-size:12px;color:var(--mute)}
+.meter-head em{font-style:normal;color:var(--heat);font-weight:700}
+.track{height:10px;border-radius:5px;background:var(--card2);overflow:hidden}
+.fill{height:100%;width:0;background:linear-gradient(90deg,var(--heat),var(--flame));transition:width .6s ease}
+.ctrl{display:flex;gap:8px}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:700}
+.btn:hover{background:var(--card2)}
+.btn[aria-pressed="true"]{border-color:var(--heat);color:var(--heat)}
+
+.narr{max-width:1120px;margin:18px auto 0;min-height:3.2em;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--display);font-size:clamp(18px,3.4vw,28px);line-height:1.35;text-wrap:balance}
+.narr.pop{animation:pop .35s ease}
+@keyframes pop{from{transform:translateY(6px);opacity:.3}}
+
+.grid{max-width:1120px;margin:18px auto 0;display:grid;gap:20px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:880px){.grid{grid-template-columns:minmax(0,1fr) 340px}}
+.feed,.side{display:grid;gap:16px;align-content:start;min-width:0}
+
+.compose{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:10px}
+.who{display:flex;gap:8px;flex-wrap:wrap}
+.who input{flex:1;min-width:120px;background:var(--ground);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.compose textarea{width:100%;min-height:84px;resize:vertical;background:var(--ground);border:1px solid var(--line);border-radius:8px;padding:10px;line-height:1.6}
+.compose-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.attach{display:inline-flex;align-items:center;gap:6px;color:var(--blue);font-size:13px;font-weight:700;cursor:pointer}
+.attach input{position:absolute;width:1px;height:1px;opacity:0}
+.thumb{height:40px;border-radius:6px}
+.count{margin-left:auto;color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
+.post-btn{background:var(--blue);border:0;border-radius:999px;padding:8px 22px;font-weight:900;color:#fff}
+.post-btn:disabled{opacity:.5;cursor:default}
+
+.tw{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;grid-template-columns:44px minmax(0,1fr);gap:4px 12px}
+.av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:17px;color:#fff}
+.tw-head{display:flex;flex-wrap:wrap;gap:0 8px;align-items:baseline;font-size:13px}
+.tw-head b{font-size:15px}
+.tw-head span{color:var(--mute)}
+.tw-text{grid-column:2;white-space:pre-wrap;overflow-wrap:anywhere}
+.tw.main .tw-text{font-size:17px}
+.tw-img{grid-column:2;margin-top:8px;border-radius:12px;max-height:380px;width:100%;object-fit:cover;border:1px solid var(--line)}
+.acts{grid-column:2;display:flex;justify-content:space-between;max-width:420px;margin-top:8px;color:var(--mute);font-size:13px;font-variant-numeric:tabular-nums}
+.acts span{display:inline-flex;align-items:center;gap:5px}
+.acts svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8}
+.acts .hot{color:var(--flame)}
+.tw.quote{border-color:var(--flame)}
+.tag{display:inline-block;font-size:11px;font-weight:900;color:var(--flame);border:1px solid var(--flame);border-radius:4px;padding:0 5px;margin-bottom:2px}
+.replies{display:grid;gap:10px}
+.replies .tw{animation:slide .4s ease}
+@keyframes slide{from{transform:translateY(-8px);opacity:0}}
+.replies-head{font-size:13px;padding-inline:4px;color:var(--mute);display:flex;justify-content:space-between}
+
+.panel{border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.panel h2{margin:0;font-size:13px;font-weight:900;padding:10px 14px;letter-spacing:.04em;background:var(--card);border-bottom:1px solid var(--line);display:flex;justify-content:space-between}
+.panel h2 span{color:var(--mute);font-weight:500}
+.empty{padding:16px 14px;color:var(--mute);font-size:13px}
+
+.trend{background:var(--card)}
+.trend ol{list-style:none;margin:0;padding:4px 0}
+.trend li{padding:8px 14px;display:grid;gap:1px;animation:slide .4s ease}
+.trend li small{color:var(--mute);font-size:11px}
+.trend li b{font-size:15px}
+.trend li .up{color:var(--flame);font-size:11px;font-weight:700}
+
+.chat{background:var(--chat);color:var(--chat-ink)}
+.chat h2{background:var(--chat);color:var(--chat-ink);border-color:#d8dde5}
+.chat .empty{color:var(--chat-mute)}
+.msgs{display:grid;gap:12px;padding:14px}
+.msg{display:grid;grid-template-columns:34px minmax(0,1fr);gap:2px 8px;animation:slide .4s ease}
+.msg .av{width:34px;height:34px;font-size:13px;background:#b5577a}
+.msg small{font-size:11px;color:var(--chat-mute)}
+.msg small b{color:var(--chat-ink);margin-right:6px}
+.msg p{grid-column:2;margin:0;justify-self:start;background:var(--bubble);border-radius:4px 14px 14px 14px;padding:8px 12px;font-size:14px;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+.short{background:#111}
+.reel{position:relative;aspect-ratio:9/14;max-width:100%;overflow:hidden;background:#fff;display:grid;place-items:center}
+.reel-bg{position:absolute;inset:-20px;background-size:cover;background-position:center;filter:blur(14px) grayscale(.6) brightness(1.4);transform:scale(1.1)}
+.reel-bg.text{display:grid;place-items:center;font-size:60px;font-weight:900;color:#ccc;filter:blur(10px);text-align:center;padding:20px;line-height:1.1}
+.telop{position:relative;display:grid;gap:4px;justify-items:center;text-align:center;font-family:var(--display);font-size:clamp(22px,6vw,30px);line-height:1.2;padding:12px}
+.telop span{color:var(--telop);-webkit-text-stroke:6px #111;paint-order:stroke;animation:pop .4s ease both}
+.telop span.red{color:#ff2a2a;-webkit-text-stroke:6px #fff}
+.reel-foot{position:absolute;left:0;right:0;bottom:0;padding:10px 12px;color:#fff;font-size:11px;background:linear-gradient(transparent,rgba(0,0,0,.7));display:grid;gap:2px}
+.reel-foot b{font-size:12px}
+
+.toasts{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));display:grid;gap:8px;z-index:9;max-width:calc(100% - 32px)}
+.toast{background:var(--card2);border:1px solid var(--line);border-left:3px solid var(--flame);border-radius:10px;padding:8px 14px;font-size:13px;animation:slide .3s ease}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<header class="bar">
+  <div class="logo"><b>Y</b><span><strong>絶対にバズるSNS</strong><small>何を投稿しても炎上を疑似体験できる</small></span></div>
+  <div class="meter">
+    <div class="meter-head"><span>炎上度</span><em id="stage">平和</em></div>
+    <div class="track"><div class="fill" id="fill"></div></div>
+  </div>
+  <div class="ctrl">
+    <button class="btn" id="fast" aria-pressed="false">早送り</button>
+    <button class="btn" id="calm">鎮火する</button>
+  </div>
+</header>
+
+<div class="narr" id="narr">投稿してみましょう</div>
+
+<main class="grid">
+  <section class="feed">
+    <form class="compose" id="compose">
+      <div class="who">
+        <input id="name" value="みかん" aria-label="名前" maxlength="20">
+        <input id="uid" value="mikan_home" aria-label="ユーザーID" maxlength="20">
+      </div>
+      <textarea id="text" aria-label="投稿内容" maxlength="140">寒天作りました〜美味しそう！😋✨ まだまだ暑い日が続くので皆さん気を付けてくださいね💦</textarea>
+      <div class="compose-foot">
+        <label class="attach">画像を付ける<input type="file" id="file" accept="image/*"></label>
+        <img class="thumb" id="thumb" alt="" hidden>
+        <span class="count" id="count"></span>
+        <button class="post-btn" id="send" type="submit">投稿する</button>
+      </div>
+    </form>
+    <div id="thread"></div>
+  </section>
+
+  <aside class="side">
+    <div class="panel trend">
+      <h2>トレンド<span>日本</span></h2>
+      <ol id="trends"></ol>
+      <div class="empty" id="trendEmpty">炎上が広がると、ここに載ります。</div>
+    </div>
+    <div class="panel chat">
+      <h2>母<span>トーク</span></h2>
+      <div class="msgs" id="msgs"><div class="empty">まだ平和です。</div></div>
+    </div>
+    <div class="panel short">
+      <h2>ショート動画<span>おすすめ</span></h2>
+      <div id="reel"><div class="empty">まだ誰にも取り上げられていません。</div></div>
+    </div>
+  </aside>
+</main>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+const $ = id => document.getElementById(id)
+
+const DICT = [
+  ["food", "寒天 ゼリー プリン ケーキ クッキー パンケーキ ホットケーキ パン カレー ラーメン お弁当 弁当 おにぎり パスタ サラダ スープ デザート 朝ごはん 晩ごはん 夕飯 ご飯 唐揚げ 卵焼き 味噌汁 うどん そば チャーハン ハンバーグ パフェ アイス コーヒー 紅茶 料理 お菓子"],
+  ["pet", "ハムスター うさぎ インコ 金魚 ねこ 猫 いぬ 犬"],
+  ["hobby", "イラスト プログラミング Scratch ゲーム ギター ピアノ 勉強 テスト 読書 散歩 ランニング 筋トレ 作品 絵 写真"]
+].flatMap(([cat, s]) => s.split(" ").map(w => [w, cat]))
+
+const LINES = {
+  food: [
+    "こんな{w}ばかり食べてたら、絶対栄養失調になるぞ",
+    "{w}の盛り付けが雑すぎる。料理なめてる？",
+    "それ{w}じゃなくて、ただの失敗作では",
+    "{w}に砂糖入れすぎ。体のこと考えたことある？",
+    "{w}は手作りより市販の方が衛生的です",
+    "食べ物で遊ばないでください"
+  ],
+  pet: [
+    "{w}の飼い方、間違ってますよ",
+    "{w}がかわいそう",
+    "{w}を見世物にするな",
+    "その{w}、ストレスで顔が死んでる"
+  ],
+  hobby: [
+    "{w}とか、もっと上手い人いくらでもいる",
+    "{w}してる暇あったら働け",
+    "その{w}、パクリですよね？",
+    "{w}で承認欲求満たすのやめな"
+  ],
+  any: [
+    "こんな雑な{w}、実は計算し尽くされた『やらせ』なんじゃ？",
+    "この人、前も{w}で炎上してなかった？",
+    "{w}アピールいらない",
+    "なんでわざわざ{w}を投稿するの？",
+    "{w}が許されるのは小学生まで",
+    "これを{w}と呼ぶのは無理がある",
+    "{w}業界に謝ってください",
+    "通報しました",
+    "まとめに載ってたから来ました",
+    "過去の投稿まで見たけど、ずっとこの調子",
+    "釣りでしょ",
+    "ノーコメントで",
+    "こういうのが一番タチ悪い"
+  ]
+}
+
+const TRIGGERS = [
+  [/美味し|おいし|うまい/, "自分で美味しそうって言う人、信用できない"],
+  [/皆さん|みなさん|みんな/, "『皆さん気を付けて』って何様？"],
+  [/暑|寒|雨|雪/, "天気の話で同情を引こうとしてる"],
+  [/\p{Extended_Pictographic}/u, "絵文字の量で年齢がバレてる"],
+  [/[!！]/, "テンション高くて怖い"],
+  [/作り|作っ|描い|撮っ/, "自分で作ったアピール、正直いらない"],
+  [/今日|昨日/, "いちいち日記を全世界に公開するな"]
+]
+
+const IMG_LINES = [
+  "写真の盛り付けにセンスが無い",
+  "背景の生活感がすごい",
+  "画像、よく見ると何か写ってない？",
+  "この写真、泡だらけに見えるのは自分だけ？"
+]
+
+const USERS = [
+  ["星屑", "star-dust", "#5b4bb7"], ["月光", "moon-light", "#c4572b"], ["正論マン", "seiron_man", "#2a7f62"],
+  ["通りすがりの主婦", "toorisugari", "#b0457a"], ["栄養士の卵", "eiyou_egg", "#9a7a1c"], ["センス警察官", "sense_police", "#2f5fb3"],
+  ["匿名希望", "noname_0721", "#55606e"], ["夜更かしペンギン", "penguin_night", "#1f7c8f"], ["元プロ", "moto_pro", "#8a3b3b"],
+  ["一般人A", "ippan_a", "#6a6f2b"], ["辛口レビュアー", "karakuchi", "#a33f59"], ["深夜の哲学者", "midnight_phil", "#4a4a8a"]
+]
+
+const ICONS = {
+  reply: '<path d="M4 5h16v10H9l-5 4z"/>',
+  rt: '<path d="M7 7h11l-3-3M17 17H6l3 3M18 7v5M6 17v-5"/>',
+  like: '<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/>',
+  view: '<path d="M5 20V12M10 20V6M15 20v-9M20 20V9"/>'
+}
+
+const ADJ = ["泡だらけ", "雑盛り", "やらせ疑惑", "ボロクソ"]
+const POLICE = ["センス警察", "栄養警察", "マナー警察", "日本語警察"]
+const STAGES = [[0, "平和"], [8, "ざわざわ"], [30, "プチ炎上"], [55, "炎上"], [75, "大炎上"], [92, "焼け野原"]]
+
+const pick = a => a[Math.random() * a.length | 0]
+const shuffle = a => a.map(v => [Math.random(), v]).sort((x, y) => x[0] - y[0]).map(v => v[1])
+const fmt = n => n >= 10000 ? (n / 10000).toFixed(1) + "万" : n.toLocaleString()
+
+function topic(text) {
+  for (const [w, cat] of DICT) if (text.includes(w)) return { w, cat }
+  const runs = text.match(/[一-龠々]{2,}|[ァ-ヴー]{2,}|[A-Za-z]{3,}/g) || []
+  const w = runs.sort((a, b) => b.length - a.length)[0]
+  return w ? { w, cat: "any" } : { w: "その投稿", cat: "any" }
+}
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag)
+  if (cls) e.className = cls
+  if (text != null) e.textContent = text
+  return e
+}
+
+function avatar(name, color) {
+  const a = el("div", "av", name[0])
+  a.style.background = color
+  return a
+}
+
+function acts(c, hot) {
+  const box = el("div", "acts")
+  for (const k of ["reply", "rt", "like", "view"]) {
+    const s = el("span", hot && k !== "view" ? "hot" : "")
+    s.innerHTML = `<svg viewBox="0 0 24 24">${ICONS[k]}</svg>`
+    s.append(fmt(c[k]))
+    s.dataset.k = k
+    box.append(s)
+  }
+  return box
+}
+
+function card({ name, uid, color, text, img, counts, cls, tag }) {
+  const t = el("article", "tw " + (cls || ""))
+  t.append(avatar(name, color))
+  const head = el("div", "tw-head")
+  head.append(el("b", "", name), el("span", "", "@" + uid), el("span", "", "・たった今"))
+  t.append(head)
+  const body = el("div", "tw-text")
+  if (tag) body.append(el("span", "tag", tag), document.createElement("br"))
+  body.append(text)
+  t.append(body)
+  if (img) {
+    const i = el("img", "tw-img")
+    i.src = img
+    i.alt = "投稿画像"
+    t.append(i)
+  }
+  t.append(acts(counts, cls === "main"))
+  return t
+}
+
+let run = null
+let speed = 1
+let image = null
+
+function toast(msg) {
+  const t = el("div", "toast", msg)
+  $("toasts").append(t)
+  setTimeout(() => t.remove(), 2600)
+  while ($("toasts").children.length > 3) $("toasts").firstChild.remove()
+}
+
+function setNarr(s) {
+  const n = $("narr")
+  n.textContent = s
+  n.classList.remove("pop")
+  void n.offsetWidth
+  n.classList.add("pop")
+}
+
+function setFlame(v) {
+  run.flame = v
+  $("fill").style.width = v + "%"
+  $("stage").textContent = STAGES.filter(s => v >= s[0]).pop()[1]
+}
+
+function bump() {
+  const c = run.counts, f = run.flame
+  c.reply = run.shown + Math.round(f * f / 6)
+  c.rt += Math.round(Math.random() * f * 9)
+  c.like += Math.round(Math.random() * f * f * 1.6)
+  c.view += Math.round(c.like * (3 + Math.random() * 6)) + 40
+  run.main.querySelectorAll(".acts span").forEach(s => s.lastChild.textContent = fmt(c[s.dataset.k]))
+}
+
+function buildReplies(text, t, hasImg) {
+  const w = t.w
+  const pool = [
+    ...TRIGGERS.filter(([re]) => re.test(text)).map(x => x[1]),
+    ...(hasImg ? shuffle(IMG_LINES).slice(0, 2) : []),
+    ...(t.cat === "any" ? [] : LINES[t.cat]),
+    ...LINES.any
+  ].map(s => s.replaceAll("{w}", w))
+  const head = pool.splice(0, 2)
+  return [...head, ...shuffle(pool)]
+}
+
+function buildScript(post) {
+  const t = topic(post.text)
+  const w = t.w
+  const nick = pick(ADJ) + w
+  const replies = buildReplies(post.text, t, !!post.img)
+  const users = shuffle(USERS)
+  let ri = 0
+  const R = n => Array.from({ length: n }, () => () => {
+    const u = users[ri % users.length]
+    addReply({ name: u[0], uid: u[1], color: u[2], text: replies[ri % replies.length] })
+    ri++
+  })
+  const N = s => () => setNarr(s)
+  const M = s => () => addMsg(s)
+  const ev = [
+    N("これは先日SNSに投稿されたものであるが"),
+    N("するとリプ欄にて"),
+    ...R(5),
+    N("そして母親からメッセージが来て"),
+    M(post.img ? `あんたの投稿した${w}の画像で` : `あんたが書いた${w}の投稿で`),
+    M(`「${nick}の母」とかって`),
+    ...R(1),
+    M("近所の人が噂してるんだけど！"),
+    ...R(2),
+    N("などとなぜか身内にまで影響を及ぼしてしまい"),
+    M("お父さんの会社でも『やらせ疑惑の人』って言われてるって…"),
+    M("ちゃんと説明しなさいよ！"),
+    ...R(2),
+    N("さらにショート動画でも取り上げられ"),
+    () => showReel(post, t),
+    ...R(3),
+    N("などとなぜか拡散されてしまい"),
+    () => addTrend(`#${w}炎上`, "急上昇"),
+    () => addReply({ name: "まとめ速報", uid: "matome_soku", color: "#c22", text: `【悲報】${w}を投稿しただけの人、とんでもないことになる`, quote: true }),
+    ...R(2),
+    () => addTrend(`#${nick}`, "話題のツイート"),
+    ...R(2),
+    M("おばあちゃんまで見たって電話きたわよ"),
+    () => addTrend("#やらせ疑惑", "トレンド"),
+    ...R(3),
+    M(t.cat === "food" ? `今日の晩ごはん、${w}はやめとくね` : `もう${w}の話はしないでね`),
+    () => { addTrend(`${w} 栄養失調`, "関連ワード"); toast("あなたの投稿が1万件以上引用されました") },
+    ...R(2),
+    N(`${w}投稿しただけでボロクソに言われてしまったのである`)
+  ]
+  return ev
+}
+
+function addReply({ name, uid, color, text, quote }) {
+  const f = run.flame
+  const counts = { reply: Math.random() * 3 * f | 0, rt: Math.random() * 5 * f | 0, like: Math.random() * 40 * f | 0, view: Math.random() * 900 * f | 0 }
+  run.list.prepend(card({ name, uid, color, text, counts, cls: quote ? "quote" : "", tag: quote ? "引用" : "" }))
+  run.shown++
+  if (Math.random() < .3) toast(`${name}さんが返信しました`)
+}
+
+function addMsg(s) {
+  const box = $("msgs")
+  box.querySelector(".empty")?.remove()
+  const m = el("div", "msg")
+  m.append(avatar("母", "#b5577a"))
+  const meta = el("small")
+  meta.append(el("b", "", "母"), "たった今")
+  m.append(meta, el("p", "", s))
+  box.append(m)
+  if (box.children.length > 7) box.firstChild.remove()
+  toast("母からメッセージが届きました")
+}
+
+function showReel(post, t) {
+  const box = $("reel")
+  box.textContent = ""
+  const r = el("div", "reel")
+  const bg = el("div", "reel-bg")
+  if (post.img) bg.style.backgroundImage = `url("${post.img}")`
+  else { bg.classList.add("text"); bg.textContent = t.w }
+  const tel = el("div", "telop")
+  const lines = [
+    [t.cat === "food" ? `手作り${t.w}が` : `${t.w}投稿が`],
+    ["大炎上", "red"],
+    [`${pick(ADJ)}の`],
+    [`${t.w}に`],
+    [`${pick(POLICE)}が動く`]
+  ]
+  lines.forEach(([s, c], i) => {
+    const sp = el("span", c || "", s)
+    sp.style.animationDelay = i * .25 + "s"
+    tel.append(sp)
+  })
+  const foot = el("div", "reel-foot")
+  foot.append(el("b", "", "SNSの炎上事例を分析！"), el("span", "", "#炎上 #SNS #解説"))
+  r.append(bg, tel, foot)
+  box.append(r)
+  toast("あなたの投稿がショート動画で紹介されました")
+}
+
+function addTrend(word, label) {
+  $("trendEmpty").hidden = true
+  const ol = $("trends")
+  const li = el("li")
+  li.append(el("small", "", `${ol.children.length + 1}位・${label}`), el("b", "", word), el("span", "up", `${fmt(3000 + Math.random() * 40000 | 0)}件の投稿`))
+  ol.prepend(li)
+  ;[...ol.children].forEach((x, i) => x.firstChild.textContent = x.firstChild.textContent.replace(/^\d+/, i + 1))
+}
+
+function calm() {
+  if (run) clearTimeout(run.timer)
+  run = null
+  $("thread").textContent = ""
+  $("msgs").innerHTML = '<div class="empty">まだ平和です。</div>'
+  $("reel").innerHTML = '<div class="empty">まだ誰にも取り上げられていません。</div>'
+  $("trends").textContent = ""
+  $("trendEmpty").hidden = false
+  $("fill").style.width = "0"
+  $("stage").textContent = "平和"
+  setNarr("投稿してみましょう")
+}
+
+function start(post, skip = 0) {
+  calm()
+  const thread = $("thread")
+  const counts = { reply: 0, rt: 0, like: 2, view: 31 }
+  const main = card({ name: post.name, uid: post.uid, color: "#3d8bd4", text: post.text, img: post.img, counts, cls: "main" })
+  const head = el("div", "replies-head")
+  head.append(el("span", "", "リプ欄"), el("span", "", "新しい順"))
+  const list = el("div", "replies")
+  thread.append(main, head, list)
+  const ev = buildScript(post)
+  run = { ev, i: 0, main, list, counts, shown: 0, flame: 0, timer: 0 }
+  const me = run
+  const step = () => {
+    if (run !== me || me.i >= ev.length) return
+    ev[me.i++]()
+    setFlame(Math.round(me.i / ev.length * 100))
+    bump()
+    if (me.i < skip) return step()
+    me.timer = setTimeout(step, (900 + Math.random() * 1100) / speed)
+  }
+  step()
+}
+
+$("compose").addEventListener("submit", e => {
+  e.preventDefault()
+  const text = $("text").value.trim()
+  if (!text) return
+  start({ name: $("name").value.trim() || "名無し", uid: $("uid").value.trim() || "user", text, img: image })
+  $("thread").scrollIntoView({ behavior: "smooth", block: "start" })
+})
+
+$("file").addEventListener("change", e => {
+  const f = e.target.files[0]
+  if (!f) return
+  const r = new FileReader()
+  r.onload = () => {
+    image = r.result
+    $("thumb").src = image
+    $("thumb").hidden = false
+  }
+  r.readAsDataURL(f)
+})
+
+const updCount = () => {
+  const n = $("text").value.length
+  $("count").textContent = `${n} / 140`
+  $("send").disabled = !n
+}
+$("text").addEventListener("input", updCount)
+updCount()
+
+$("fast").addEventListener("click", e => {
+  speed = speed === 1 ? 3 : 1
+  e.currentTarget.setAttribute("aria-pressed", speed > 1)
+})
+$("calm").addEventListener("click", () => { calm(); toast("鎮火しました") })
+
+start({ name: "みかん", uid: "mikan_home", text: $("text").value }, 9)
+</script>
+</body></html>
