@@ -185,7 +185,7 @@ button{cursor:pointer}
       <p>今すぐ参加しましょう。</p>
       <button class="cta" id="join">参加する</button>
     </div>
-    <p class="fine">架空のSNSで炎上を疑似体験するコンテンツです。投稿は外部に公開されません。</p>
+    <p class="fine">ここは架空のSNSです。あなたの投稿を見るのは、あなただけです。</p>
   </section>
 
   <section class="screen" id="s-prof" hidden>
@@ -881,7 +881,7 @@ function buildReel(sc, ctx) {
 
 async function playReel(sc, ctx, alive) {
   const { sub, prog } = buildReel(sc, ctx)
-  const lines = ["ある日、こんな投稿がされた", ...sc.replies.slice(0, 4).map(s => `「${s}」`), `ついたあだ名は「${sc.nick}」`, "などと散々な言われようである"]
+  const lines = [`ある日、${ctx.name}さんが${ctx.photo ? "一枚の写真" : "ひとこと"}を投稿した`, "するとリプ欄の人たちが書き込んだ", ...sc.replies.slice(0, 4).map(s => `「${s}」`), `あだ名は「${sc.nick}」に決まった`, `${ctx.name}さんがしたのは、${ctx.t}の投稿だけである`]
   for (let i = 0; i < lines.length; i++) {
     if (!alive()) return
     sub.textContent = lines[i]
@@ -908,7 +908,7 @@ function report(sc, ctx) {
   const prof = el("button", "ghost", "プロフィールを変える")
   prof.onclick = () => { reset(); show("prof") }
   btns.append(again, prof)
-  box.append(el("h2", "", "炎上レポート"), nick, stats, el("p", "lesson", "炎上の理由は、あとからいくらでも作られる。"), el("p", "fine", `${ctx.photo ? "一枚の写真" : "ひとことの投稿"}から、トレンド${$("trends").children.length}件、家族と${ctx.job || "職場"}にまで飛び火しました。`), btns)
+  box.append(el("h2", "", "炎上レポート"), nick, stats, el("p", "lesson", `あなたが投稿したのは${ctx.photo ? "写真1枚" : "ひとこと"}です。批判の理由は、リプ欄の人たちがあとから付けました。`), el("p", "fine", `トレンドに${$("trends").children.length}件入り、${[...rooms.values()].map(r => r.name).join("、")}からLIMEが届きました。`), btns)
 }
 
 function reset() {
@@ -1105,7 +1105,7 @@ $("sound").onclick = e => {
 }
 
 Promise.resolve(window.claude?.use?.("sample")).then(s => {
-  if (!s) $("aiNote").textContent = "写真の明るさや色、文面、プロフィールから粗探しされます。"
+  if (!s) $("aiNote").textContent = "粗探し係が、写真の明るさや色、文面、プロフィールから粗を探します。"
 })
 </script>
 </body></html>
